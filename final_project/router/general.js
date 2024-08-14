@@ -2,11 +2,35 @@ const express = require("express");
 let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
+const bcrypt = require("bcryptjs");
 const public_users = express.Router();
 
-public_users.post("/register", (req, res) => {
+public_users.post("/register", async (req, res) => {
   //Write your code here
-  return res.status(300).json({ message: "Yet to be implemented" });
+
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res
+      .status(400)
+      .json({ message: "Please enter a username and a password" });
+  }
+
+  const exists = users.some((user) => user.username === username);
+
+  if (exists) {
+    return res.status(409).json({ message: "Please choose another username" });
+  }
+
+  try {
+    const hashedPass = await bcrypt.hash(password, 10);
+
+    users.push({ username: username, password: hashedPass });
+    console.log(users);
+    return res.status(201).json({ message: "User registered successfully" });
+  } catch (e) {
+    return res.status(500).json({ message: "Error registering user" });
+  }
 });
 
 // Get the book list available in the shop

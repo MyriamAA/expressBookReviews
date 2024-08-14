@@ -55,7 +55,7 @@ public_users.get("/isbn/:isbn", function (req, res) {
   if (book) {
     return res.status(200).json(book);
   } else {
-    return res.send(404).json({ message: "No such book" });
+    return res.status(404).json({ message: "No such book" });
   }
 });
 
@@ -65,7 +65,7 @@ public_users.get("/author/:author", function (req, res) {
   const { author } = req.params;
 
   if (!author) {
-    return res.send(400).json({ message: "Enter author name" });
+    return res.status(400).json({ message: "Enter author name" });
   }
   const details = Object.values(books);
   try {
@@ -73,10 +73,10 @@ public_users.get("/author/:author", function (req, res) {
     if (book) {
       return res.status(200).json(book);
     } else {
-      return res.send(404).json({ message: "No such book" });
+      return res.status(404).json({ message: "No such book" });
     }
   } catch (e) {
-    return res.send(500);
+    return res.status(500);
   }
 });
 
@@ -86,7 +86,7 @@ public_users.get("/title/:title", function (req, res) {
 
   const { title } = req.params;
   if (!title) {
-    return res.send(400).json({ message: "Enter the title" });
+    return res.status(400).json({ message: "Enter the title" });
   }
 
   const details = Object.values(books);
@@ -95,10 +95,10 @@ public_users.get("/title/:title", function (req, res) {
     if (book) {
       return res.status(200).json(book);
     } else {
-      return res.send(404).json({ message: "No such book" });
+      return res.status(404).json({ message: "No such book" });
     }
   } catch (e) {
-    return res.send(500);
+    return res.status(500);
   }
 });
 
@@ -116,10 +116,10 @@ public_users.get("/review/:isbn", function (req, res) {
     if (book) {
       return res.status(200).json(book.reviews);
     } else {
-      return res.send(404).json({ message: "No such book" });
+      return res.status(404).json({ message: "No such book" });
     }
   } catch (e) {
-    return res.send(500);
+    return res.status(500);
   }
 });
 

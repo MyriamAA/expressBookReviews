@@ -39,13 +39,19 @@ regd_users.post("/login", async (req, res) => {
     if (!match) {
       return res.status(401).json({ message: "Wrong credentials" });
     } else {
-      jwt.sign({ username, password }, process.env.JWT_SECRET, (err, token) => {
-        if (err) {
-          return res.status(500).json({ message: "Error generating token" });
-        } else {
-          return res.status(200).json({ token, message: "Login successful" });
+      jwt.sign(
+        { username },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" },
+        (err, token) => {
+          if (err) {
+            return res.status(500).json({ message: "Error generating token" });
+          } else {
+            res.cookie("token", token, { httpOnly: true, secure: true });
+            return res.status(200).json({ token, message: "Login successful" });
+          }
         }
-      });
+      );
     }
   } catch (e) {
     return res.status(500).json({ message: "Error logging in" });

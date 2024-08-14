@@ -81,7 +81,22 @@ public_users.get("/title/:title", function (req, res) {
 //  Get book review
 public_users.get("/review/:isbn", function (req, res) {
   //Write your code here
-  return res.status(300).json({ message: "Yet to be implemented" });
+
+  const { isbn } = req.params;
+  if (isNaN(isbn)) {
+    return res.status(400).json({ message: "Invalid ISBN format" });
+  }
+
+  try {
+    const book = books[isbn];
+    if (book) {
+      return res.status(200).json(book.reviews);
+    } else {
+      return res.send(404).json({ message: "No such book" });
+    }
+  } catch (e) {
+    return res.send(500);
+  }
 });
 
 module.exports.general = public_users;

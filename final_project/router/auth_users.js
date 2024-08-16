@@ -24,9 +24,8 @@ const authenticatedUser = async (username, password) => {
 };
 
 // User login route
-regd_users.post("/login", (req, res) => {
+regd_users.post("/login", async (req, res) => {
   const { username, password } = req.body;
-
   console.log(`username: ${username} \npass:${password}`);
 
   if (!username || !password) {
@@ -35,15 +34,13 @@ regd_users.post("/login", (req, res) => {
       .json({ message: "Enter both username and password" });
   }
 
-  const user = users.find((u) => u.username === username);
-
   if (!isValid(username)) {
     return res.status(400).json({ message: "User doesn't exist" });
   }
 
-  console.log(`user is valid`);
   try {
-    if (!authenticatedUser(username, password)) {
+    const isAuthenticated = await authenticatedUser(username, password);
+    if (!isAuthenticated) {
       return res.status(401).json({ message: "Wrong credentials" });
     } else {
       jwt.sign(
@@ -60,6 +57,7 @@ regd_users.post("/login", (req, res) => {
       );
     }
   } catch (e) {
+    console.error("Error during login:", e);
     return res.status(500).json({ message: "Error logging in" });
   }
 });

@@ -98,6 +98,35 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
   });
 });
 
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+  const isbn = req.params.isbn;
+  const authHeader = req.headers["authorization"]; // Get the Authorization header
+
+  if (!authHeader) {
+    return res.status(403).json({ message: "No token provided" });
+  }
+  const token = authHeader.split(" ")[1]; // Extract token part (after 'Bearer')
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    const username = decoded.username;
+    const book = books[isbn];
+
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+    // Filter out the review for the specific username
+    book.reviews = {};
+
+    return res.status(200).json({
+      message: "Review deleted successfully",
+      reviews: book.reviews,
+    });
+  });
+});
 module.exports.authenticated = regd_users;
 module.exports.isValid = isValid;
 module.exports.users = users;

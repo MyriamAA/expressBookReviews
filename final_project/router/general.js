@@ -26,7 +26,6 @@ public_users.post("/register", async (req, res) => {
     const hashedPass = await bcrypt.hash(password, 10);
 
     users.push({ username: username, password: hashedPass });
-    console.log(users);
     return res.status(201).json({ message: "User registered successfully" });
   } catch (e) {
     return res.status(500).json({ message: "Error registering user" });
@@ -51,7 +50,6 @@ public_users.get("/isbn/:isbn", function (req, res) {
     return res.status(400).json({ message: "Invalid ISBN format" });
   }
   const book = books[isbn];
-  console.log(book);
   if (book) {
     return res.status(200).json(book);
   } else {

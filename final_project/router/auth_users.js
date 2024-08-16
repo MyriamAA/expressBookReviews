@@ -7,19 +7,27 @@ const regd_users = express.Router();
 
 let users = [];
 
+// Utility functions to check if user exists
 const isValid = (username) => {
-  //returns boolean
-  //write code to check is the username is valid
+  return users.some((user) => user.username === username);
 };
 
-const authenticatedUser = (username, password) => {
-  //returns boolean
-  //write code to check if username and password match the one we have in records.
+const authenticatedUser = async (username, password) => {
+  const user = users.find((u) => u.username === username);
+  if (user) {
+    const match = await bcrypt.compare(password, user.password);
+    if (match) {
+      return true;
+    }
+  }
+  return false;
 };
 
-//only registered users can login
-regd_users.post("/login", async (req, res) => {
+// User login route
+regd_users.post("/login", (req, res) => {
   const { username, password } = req.body;
+
+  console.log(`username: ${username} \npass:${password}`);
 
   if (!username || !password) {
     return res
@@ -29,25 +37,23 @@ regd_users.post("/login", async (req, res) => {
 
   const user = users.find((u) => u.username === username);
 
-  if (!user) {
+  if (!isValid(username)) {
     return res.status(400).json({ message: "User doesn't exist" });
   }
 
+  console.log(`user is valid`);
   try {
-    const match = await bcrypt.compare(password, user.password);
-
-    if (!match) {
+    if (!authenticatedUser(username, password)) {
       return res.status(401).json({ message: "Wrong credentials" });
     } else {
       jwt.sign(
-        { username },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" },
+        { username }, // Payload of the token
+        process.env.JWT_SECRET, // Secret key
+        { expiresIn: "1h" }, // Token expiration
         (err, token) => {
           if (err) {
             return res.status(500).json({ message: "Error generating token" });
           } else {
-            res.cookie("token", token, { httpOnly: true, secure: true });
             return res.status(200).json({ token, message: "Login successful" });
           }
         }
@@ -60,8 +66,38 @@ regd_users.post("/login", async (req, res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  //Write your code here
-  return res.status(300).json({ message: "Yet to be implemented" });
+  const isbn = req.params.isbn;
+  const review = req.body.review;
+  const authHeader = req.headers["authorization"]; // Get the Authorization header
+
+  if (!authHeader) {
+    return res.status(403).json({ message: "No token provided" });
+  }
+
+  const token = authHeader.split(" ")[1]; // Extract token part (after 'Bearer')
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    const username = decoded.username;
+    const book = books[isbn];
+
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    if (!book.reviews) {
+      book.reviews = {};
+    }
+
+    book.reviews[username] = review;
+
+    return res
+      .status(200)
+      .json({ message: "Review added/updated", reviews: book.reviews });
+  });
 });
 
 module.exports.authenticated = regd_users;

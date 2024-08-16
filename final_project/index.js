@@ -18,23 +18,26 @@ app.use(
 );
 
 app.use("/customer/auth/*", function auth(req, res, next) {
-  // Extract token
+  const authHeader = req.headers["authorization"];
 
-  const token = req.headers["authorization"];
-
-  if (!token) {
+  if (!authHeader) {
+    console.log("No Authorization header found");
     return res.status(403).send({ message: "Not authenticated" });
   }
 
+  const token = authHeader.split(" ")[1];
+
   jwt.verify(token, process.env.JWT_SECRET, (err, obj) => {
     if (err) {
+      console.log("JWT verification failed:", err.message);
       return res.status(401).send({ message: "Not authorized" });
     }
+
     req.user = obj;
+    console.log("JWT verification successful");
 
     next();
   });
-  //Write the authenication mechanism here
 });
 
 const PORT = 5000;

@@ -4,6 +4,7 @@ let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const bcrypt = require("bcryptjs");
 const public_users = express.Router();
+const path = require("path");
 
 public_users.post("/register", async (req, res) => {
   //Write your code here
@@ -33,12 +34,17 @@ public_users.post("/register", async (req, res) => {
 });
 
 // Get the book list available in the shop
-public_users.get("/", function (req, res) {
-  //Write your code here
-  if (!books) {
-    return res.status(404).json({ message: "No books found" });
+public_users.get("/", async (req, res) => {
+  try {
+    const books = require("./books.json"); // Load books.json directly
+    if (!books) {
+      return res.status(404).json({ message: "No books found" });
+    } else {
+      return res.status(200).json(books);
+    }
+  } catch (e) {
+    return res.status(500).json({ message: "Error in server" });
   }
-  return res.status(200).json(books);
 });
 
 // Get book details based on ISBN
@@ -59,7 +65,6 @@ public_users.get("/isbn/:isbn", function (req, res) {
 
 // Get book details based on author
 public_users.get("/author/:author", function (req, res) {
-  //Write your code here
   const { author } = req.params;
 
   if (!author) {

@@ -4,9 +4,12 @@ const session = require("express-session");
 const customer_routes = require("./router/auth_users.js").authenticated;
 const genl_routes = require("./router/general.js").general;
 require("dotenv").config();
+const path = require("path"); // Required for handling file paths
+
 const app = express();
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "router")));
 
 app.use(
   "/customer",
